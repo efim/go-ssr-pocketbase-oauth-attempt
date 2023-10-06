@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link href="/static/static/public/out.css" rel="stylesheet">
     <!-- Place favicon.ico in the root directory -->
     <script
       defer
@@ -22,8 +23,8 @@
         <a href="http://browsehappy.com/">upgrade your browser</a> to improve
         your experience.
     <![endif]-->
-    <nav>
-      <p>Using SSR and oauth with pocketbase as Go framework</p>
+    <nav class="bg-blue-300 flex flex-row p-4 gap-x-4">
+      <h2 class="text-lg font-bold flex-1">Using SSR and oauth with pocketbase as Go framework</h2>
       {{ if .NavInfo.IsGuest }}
       <button id="openAuth">Authenticate</button>
       <dialog id="authDialog">
@@ -91,10 +92,10 @@
         // document.addEventListener("DOMContentLoaded", initAuthDialog);
       </script>
       {{ else }}
-      <p>{{ .NavInfo.Username }}</p>
+      <p>Logged in as: {{ .NavInfo.Username }}</p>
       <button hx-get="/logout">Logout</button>
       {{ end }}
     </nav>
-    <main hx-boost="true">{{ template "content" . }}</main>
+    <main hx-boost="true">{{ template "main" . }}</main>
   </body>
 </html>

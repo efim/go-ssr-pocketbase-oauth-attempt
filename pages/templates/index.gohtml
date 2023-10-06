@@ -2,16 +2,18 @@
   Index page
 {{ end }}
 
-{{ define "content" }}
-  <h1>Welcome to index page</h1>
+{{ define "main" }}
+<main hx-boost="true" class="px-10 pt-10 flex flex-col gap-y-10">
+  <h1 class="text-2xl font-bold">Welcome to index page</h1>
   {{ if not .NavInfo.IsGuest }}
   <p>This is content only for authenticated users! Congratulations!</p>
   <ul>
     <li>
-      <a href="/somepage">Link to page only for logged in users</a>
+      <a href="/somepage" class="text-blue-500 visited:text-purple-500 underline">Link to page only for logged in users</a>
     </li>
   </ul>
   {{ else }}
   <p>There will be some content only for authorized users</p>
   {{ end }}
+</main>
 {{ end }}

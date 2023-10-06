@@ -2,8 +2,9 @@
     Some page with content
 {{ end }}
 
-{{ define "content" }}
-    <h1>This is another page</h1>
+{{ define "main" }}
+<main class="flex flex-col gap-y-4 p-10 ">
+    <h1 class="text-2xl">This is another page</h1>
     <p>Will be rendered on server</p>
     <p>and locked under apis.RequireAdminOrRecordAuth default middleware</p>
     <p>here are some random numbers</p>
@@ -11,4 +12,5 @@
         <li>{{ .RandomNumber }}</li>
         <li>{{ .RandomString }}</li>
     </ul>
+</main>
 {{ end }}

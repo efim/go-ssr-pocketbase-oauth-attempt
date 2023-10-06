@@ -62,6 +62,14 @@ and now all since base template has Nav,
 i need to provide attibutes which are used there, huh
 well. hmmmmm. yeah, i guess
 ** TODO add tailwind styling
+and wgo command should move from
+wgo -file=.gohtml -file=.go go run . serve
+
+to
+wgo -verbose -file=.go -file=.gohtml -file=tailwind.config.js tailwindcss -i ./pages/input.css -o pages/static/public/out.css :: go run . serve
+*** DONE style pages
+*** TODO style dialog
+
 ** TODO package static into single binary
 i guess already done?
 ** TODO write nix build
