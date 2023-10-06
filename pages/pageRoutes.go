@@ -16,8 +16,17 @@ import (
 //go:embed templates
 var templatesFS embed.FS
 
+//go:embed static
+var staticFilesFS embed.FS
+
 func AddPageRoutes(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(getIndexPageRoute(app))
+
+	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		e.Router.StaticFS("/static", staticFilesFS)
+		// this path works : http://127.0.0.1:8090/static/static/public/htmx.min.js
+        return nil
+	})
 }
 
 // render and return index page
