@@ -119,6 +119,7 @@ func getLogoutRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error {
 				Path: "/",
 				MaxAge: -1,
 			})
+			c.Response().Header().Add("HX-Trigger", "auth-change-event")
 			return c.JSON(http.StatusOK, map[string]string{"message": "session cookie removed"})
 		})
 		return nil

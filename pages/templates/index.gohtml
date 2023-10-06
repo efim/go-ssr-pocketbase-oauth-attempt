@@ -13,10 +13,7 @@
       defer
       src="https://cdn.jsdelivr.net/gh/pocketbase/js-sdk@master/dist/pocketbase.umd.js"
     ></script>
-    <script
-      defer
-      src="/static/static/public/htmx.min.js"
-    ></script>
+    <script defer src="/static/static/public/htmx.min.js"></script>
     <script defer type="text/javascript">
       async function callOauth(providerName) {
         const pb = new PocketBase("http://127.0.0.1:8090");
@@ -38,29 +35,13 @@
 
         // "logout" the last authenticated model
         pb.authStore.clear();
+        document.body.dispatchEvent(new Event("auth-change-event"))
       }
-    </script>
-    <script defer type="text/javascript">
-      function initAuthDialog() {
-        const dialog = document.querySelector("#authDialog");
-        const showButton = document.querySelector("#openAuth");
-        const closeButton = document.querySelector("#closeAuth");
-        console.log("setting up script for buttons");
-
-        // "Show the dialog" button opens the dialog modally
-        showButton.addEventListener("click", () => {
-          dialog.showModal();
-        });
-
-        // "Close" button closes the dialog
-        closeButton.addEventListener("click", () => {
-          dialog.close();
-        });
-      }
-      document.addEventListener("DOMContentLoaded", initAuthDialog);
     </script>
   </head>
-  <body>
+  <body
+    hx-get="/" hx-trigger="auth-change-event"
+    >
     <!--[if lt IE 8]>
       <p class="browserupgrade">
         You are using an <strong>outdated</strong> browser. Please
@@ -87,9 +68,40 @@
         <p>Please configure at least one oauth provider</p>
         {{ end }}
       </dialog>
+      <script defer type="text/javascript">
+        function initAuthDialog() {
+          const dialog = document.querySelector("#authDialog");
+          const showButton = document.querySelector("#openAuth");
+          // const closeButton = document.querySelector("#closeAuth");
+          // Select all buttons that are direct children of the dialog
+          var buttons = authDialog.querySelectorAll("button");
+
+          if (!dialog || !showButton) {
+            console.log("some auth elements are not present");
+            return;
+          }
+          console.log("setting up script for buttons");
+
+          // "Show the dialog" button opens the dialog modally
+          showButton.addEventListener("click", () => {
+            dialog.showModal();
+          });
+
+          buttons.forEach(function (button) {
+            button.addEventListener("click", function () {
+              authDialog.close();
+            });
+          });
+        }
+        initAuthDialog();
+        // "DOMContentLoaded" doesn't work with htmx replacing body
+        // maybe i could use htmx related event, but ok to just do asap, i guess
+        // also - i bet hyperscript would work here
+        // document.addEventListener("DOMContentLoaded", initAuthDialog);
+      </script>
       {{ else }}
       <p>{{ .Username }}</p>
-      <a href="/logout">Logout</a>
+      <button hx-get="/logout">Logout</button>
       {{ end }}
     </nav>
     <main>

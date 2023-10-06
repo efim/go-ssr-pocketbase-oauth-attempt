@@ -22,9 +22,36 @@ with js code from the example
 *** DONE in template range over enabled providers to create buttons for each
 *** DONE make dialog show on click of some element
 https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
-** TODO i guess i would also like to send htmx event for reloading the page
+** DONE i guess i would also like to send htmx event for reloading the page
 on successful auth?
+now, why would logout work, and login not work?
+
+eh, let's go back on body doing the hx-get on event?
+
+maybe this is because of open dialog
+*** wait, maybe then returning from other auth middlewares will work
+no.
+for some reason
+#+begin_src go
+e.HttpContext.Response().Header().Add("HX-Trigger", "auth-change-event")
+#+end_src
+
+this header when returned with response to request triggered by js, doesn't result in event being triggered,
+ok, i guess
+*** so yeah, uglier that i wanted
+wanted to have hx-get="/" hx-trigger="auth-change-event"
+and send these events from all auth middleware methods
+
+https://htmx.org/docs/#response-headers
+
+but on auth success, even though header is present in the response, no event is triggered
+( checked with event listener in console )
+so, yup. coupling between js code of oauth, middlewares and body tag. this seems like too much.
+
+but it somewhat works
+
 ** TODO add one more page that checks auth
+and let's use existing middleware from framework documentation
 ** TODO add tailwind styling
 ** TODO package static into single binary
 ** TODO write nix build
