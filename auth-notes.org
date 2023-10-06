@@ -1,0 +1,3 @@
+#+title: Auth Notes
+* starting the pocketbase as framework
+https://pocketbase.io/docs/go-overview/
