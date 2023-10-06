@@ -1,3 +1,26 @@
 #+title: Auth Notes
 * starting the pocketbase as framework
 https://pocketbase.io/docs/go-overview/
+* plan
+** DONE start pocketbase
+** DONE add middlewares for cookie session
+** TODO add index page, that will have either "current user" or 'login' link
+** TODO 'login' link should open dialog with oauth providers
+so, i want a window with available oauth providers,
+to trigger the js code from example
+https://pocketbase.io/docs/authentication/
+( all in one, recommended )
+
+let's get configured providers in the go code,
+add as slice of strings, and in template create buttons for each of those
+with js code from the example
+** TODO i guess i would also like to send htmx event for reloading the page
+on successful auth?
+** TODO add one more page that checks auth
+** TODO add tailwind styling
+** TODO package static into single binary
+** TODO write nix build
+** TODO write nixos module
+** TODO add docker image from nix
+*** TODO add cli for port and host
+** TODO add readme and comments

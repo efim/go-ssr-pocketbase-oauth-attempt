@@ -2,15 +2,16 @@ package main
 
 import (
     "log"
-    // "os"
 
     "github.com/pocketbase/pocketbase"
-    // "github.com/pocketbase/pocketbase/apis"
-    // "github.com/pocketbase/pocketbase/core"
+	"sunshine.industries/auth-pocketbase-attempt/middleware"
+	"sunshine.industries/auth-pocketbase-attempt/pages"
 )
 
 func main() {
 	app := pocketbase.New()
+	middleware.AddCookieSessionMiddleware(app)
+	pages.AddPageRoutes(app)
 
     if err := app.Start(); err != nil {
         log.Fatal(err)
