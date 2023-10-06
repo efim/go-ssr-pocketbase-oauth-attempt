@@ -18,7 +18,6 @@ var templatesFS embed.FS
 
 func AddPageRoutes(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(getIndexPageRoute(app))
-	app.OnBeforeServe().Add(getAuthPageRoute(app))
 }
 
 // render and return index page
@@ -75,22 +74,3 @@ func getIndexPageRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error
 		return nil
 	}
 }
-
-// render and return login page with configured oauth providers
-func getAuthPageRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error {
-	return func (e *core.ServeEvent) error {
-		e.Router.GET("/login", func(c echo.Context) error {
-
-			templateName := "templates/login.gohtml"
-			tmpl := template.Must(template.ParseFS(templatesFS, templateName))
-			var instantiatedTemplate bytes.Buffer
-			if err := tmpl.Execute(&instantiatedTemplate, nil); err != nil {
-				return c.JSON(http.StatusInternalServerError, map[string]string{"message": "error parsing template"})
-			}
-
-			return c.HTML(http.StatusOK, instantiatedTemplate.String())
-		})
-		return nil
-	}
-}
-

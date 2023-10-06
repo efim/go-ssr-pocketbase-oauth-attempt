@@ -53,9 +53,31 @@
 >
     <![endif]-->
     <p>{{ .Username }}</p>
-    <dialog open>
+    <button id="openAuth">Authenticate</button>
+    <dialog id="authDialog">
+      <button id="closeAuth">[X]</button>
       <p>Greetings, one and all!</p>
-      <button onClick="callOauth('github')">OK!</button>
+      {{ range .EnabledOauthProviders }}
+      <button onClick="callOauth('{{ . }}')">Login with {{ . }}</button>
+      {{ else }}
+      <p>Please configure at least one oauth provider</p>
+      {{ end }}
     </dialog>
+    <script defer type="text/javascript">
+      const dialog = document.querySelector("#authDialog");
+      const showButton = document.querySelector("#openAuth");
+      const closeButton = document.querySelector("#closeAuth");
+      console.log("setting up script for buttons");
+
+      // "Show the dialog" button opens the dialog modally
+      showButton.addEventListener("click", () => {
+        dialog.showModal();
+      });
+
+      // "Close" button closes the dialog
+      closeButton.addEventListener("click", () => {
+        dialog.close();
+      });
+    </script>
   </body>
 </html>

@@ -5,7 +5,12 @@ https://pocketbase.io/docs/go-overview/
 ** DONE start pocketbase
 ** DONE add middlewares for cookie session
 ** TODO add index page, that will have either "current user" or 'login' link
-** TODO 'login' link should open dialog with oauth providers
+*** TODO let's add some content that only opens up when person is authed
+*** TODO also, how do i logout?
+separate route that deleted the cookie i guess.
+since auth is a jwt which would expire on its own
+and htmx get thingy, and reload i guess?
+** DONE 'login' link should open dialog with oauth providers
 so, i want a window with available oauth providers,
 to trigger the js code from example
 https://pocketbase.io/docs/authentication/
@@ -14,6 +19,9 @@ https://pocketbase.io/docs/authentication/
 let's get configured providers in the go code,
 add as slice of strings, and in template create buttons for each of those
 with js code from the example
+*** DONE in template range over enabled providers to create buttons for each
+*** DONE make dialog show on click of some element
+https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
 ** TODO i guess i would also like to send htmx event for reloading the page
 on successful auth?
 ** TODO add one more page that checks auth
@@ -24,3 +32,5 @@ on successful auth?
 ** TODO add docker image from nix
 *** TODO add cli for port and host
 ** TODO add readme and comments
+** TODO configure tls / ssl / https on franzk deployment
+can it be configured on render.com?

@@ -18,7 +18,6 @@ const AuthCookieName = "Auth"
 func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.Use(loadAuthContextFromCookie(app))
-
 		return nil
 	})
 
@@ -50,7 +49,7 @@ func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
 		})
         return nil
     })
-
+	app.OnBeforeServe().Add(getLogoutRoute(app))
 }
 
 func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
@@ -109,3 +108,20 @@ func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
 		}
 	}
 }
+
+// render and return login page with configured oauth providers
+func getLogoutRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error {
+	return func (e *core.ServeEvent) error {
+		e.Router.GET("/logout", func(c echo.Context) error {
+			c.SetCookie(&http.Cookie{
+				Name: AuthCookieName,
+				Value: "",
+				Path: "/",
+				MaxAge: -1,
+			})
+			return c.JSON(http.StatusOK, map[string]string{"message": "session cookie removed"})
+		})
+		return nil
+	}
+}
+
