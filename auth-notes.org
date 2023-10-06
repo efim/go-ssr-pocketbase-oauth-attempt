@@ -4,9 +4,9 @@ https://pocketbase.io/docs/go-overview/
 * plan
 ** DONE start pocketbase
 ** DONE add middlewares for cookie session
-** TODO add index page, that will have either "current user" or 'login' link
-*** TODO let's add some content that only opens up when person is authed
-*** TODO also, how do i logout?
+** DONE add index page, that will have either "current user" or 'login' link
+*** DONE let's add some content that only opens up when person is authed
+*** DONE also, how do i logout?
 separate route that deleted the cookie i guess.
 since auth is a jwt which would expire on its own
 and htmx get thingy, and reload i guess?

@@ -36,9 +36,27 @@
         pb.authStore.clear();
       }
     </script>
+    <script defer type="text/javascript">
+      function initAuthDialog() {
+        const dialog = document.querySelector("#authDialog");
+        const showButton = document.querySelector("#openAuth");
+        const closeButton = document.querySelector("#closeAuth");
+        console.log("setting up script for buttons");
+
+        // "Show the dialog" button opens the dialog modally
+        showButton.addEventListener("click", () => {
+          dialog.showModal();
+        });
+
+        // "Close" button closes the dialog
+        closeButton.addEventListener("click", () => {
+          dialog.close();
+        });
+      }
+      document.addEventListener("DOMContentLoaded", initAuthDialog);
+    </script>
   </head>
   <body>
-    <h1>Welcome to index page</h1>
     <!--[if lt IE 8]>
       <p class="browserupgrade">
         You are using an <strong>outdated</strong> browser. Please
@@ -52,32 +70,29 @@
 </dialog>
 >
     <![endif]-->
-    <p>{{ .Username }}</p>
-    <button id="openAuth">Authenticate</button>
-    <dialog id="authDialog">
-      <button id="closeAuth">[X]</button>
-      <p>Greetings, one and all!</p>
-      {{ range .EnabledOauthProviders }}
-      <button onClick="callOauth('{{ . }}')">Login with {{ . }}</button>
+    <nav>
+      <p>Using SSR and oauth with pocketbase as Go framework</p>
+      {{ if .IsGuest }}
+      <button id="openAuth">Authenticate</button>
+      <dialog id="authDialog">
+        <button id="closeAuth">[X]</button>
+        <p>Greetings, one and all!</p>
+        {{ range .EnabledOauthProviders }}
+        <button onClick="callOauth('{{ . }}')">Login with {{ . }}</button>
+        {{ else }}
+        <p>Please configure at least one oauth provider</p>
+        {{ end }}
+      </dialog>
       {{ else }}
-      <p>Please configure at least one oauth provider</p>
+      <p>{{ .Username }}</p>
+      <a href="/logout">Logout</a>
       {{ end }}
-    </dialog>
-    <script defer type="text/javascript">
-      const dialog = document.querySelector("#authDialog");
-      const showButton = document.querySelector("#openAuth");
-      const closeButton = document.querySelector("#closeAuth");
-      console.log("setting up script for buttons");
-
-      // "Show the dialog" button opens the dialog modally
-      showButton.addEventListener("click", () => {
-        dialog.showModal();
-      });
-
-      // "Close" button closes the dialog
-      closeButton.addEventListener("click", () => {
-        dialog.close();
-      });
-    </script>
+    </nav>
+    <main>
+      <h1>Welcome to index page</h1>
+      {{ if not .IsGuest }}
+      <p>This is content only for authenticated users! Congratulations!</p>
+      {{ end }}
+    </main>
   </body>
 </html>
