@@ -1,0 +1,14 @@
+{{ define "title" }}
+    Some page with content
+{{ end }}
+
+{{ define "content" }}
+    <h1>This is another page</h1>
+    <p>Will be rendered on server</p>
+    <p>and locked under apis.RequireAdminOrRecordAuth default middleware</p>
+    <p>here are some random numbers</p>
+    <ul>
+        <li>{{ .RandomNumber }}</li>
+        <li>{{ .RandomString }}</li>
+    </ul>
+{{ end }}

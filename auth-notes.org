@@ -50,10 +50,20 @@ so, yup. coupling between js code of oauth, middlewares and body tag. this seems
 
 but it somewhat works
 
-** TODO add one more page that checks auth
+** DONE add one more page that checks auth
 and let's use existing middleware from framework documentation
+
+with hx-boost things are well,
+but i also need header as fragment, so that opening in new tab would work.
+and all js imports and libraries that are required by all pages, should be in all templates
+
+** DONE i suppose there has to be a base template then
+and now all since base template has Nav,
+i need to provide attibutes which are used there, huh
+well. hmmmmm. yeah, i guess
 ** TODO add tailwind styling
 ** TODO package static into single binary
+i guess already done?
 ** TODO write nix build
 ** TODO write nixos module
 ** TODO add docker image from nix
@@ -61,3 +71,7 @@ and let's use existing middleware from framework documentation
 ** TODO add readme and comments
 ** TODO configure tls / ssl / https on franzk deployment
 can it be configured on render.com?
+** TODO maybe add middleware so that 401 would be a page, and not json
+** TODO i guess i'll want a makefile?
+then wgo could be build with makefile and run
+and nix packaging could be more straightforward, and not too prohibitive to those who don't use nix

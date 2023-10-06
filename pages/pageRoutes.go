@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
@@ -21,21 +22,28 @@ var staticFilesFS embed.FS
 
 func AddPageRoutes(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(getIndexPageRoute(app))
+	app.OnBeforeServe().Add(somePageRoute)
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.StaticFS("/static", staticFilesFS)
 		// this path works : http://127.0.0.1:8090/static/static/public/htmx.min.js
-        return nil
+		return nil
 	})
 }
 
-// render and return index page
-func getIndexPageRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error {
-	return func (e *core.ServeEvent) error {
+type navInfo struct {
+	Username              string
+	IsGuest               bool
+	EnabledOauthProviders []string
+}
+
+// render and return some page
+func getIndexPageRoute(app *pocketbase.PocketBase) func(*core.ServeEvent) error {
+	return func(e *core.ServeEvent) error {
 		e.Router.GET("/", func(c echo.Context) error {
 			// first collect data
-			info   := apis.RequestInfo(c)
-			admin  := info.Admin      // nil if not authenticated as admin
+			info := apis.RequestInfo(c)
+			admin := info.Admin       // nil if not authenticated as admin
 			record := info.AuthRecord // nil if not authenticated as regular auth record
 
 			isGuest := admin == nil && record == nil
@@ -60,19 +68,22 @@ func getIndexPageRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error
 			fmt.Printf(">> enabled providers names %+v\n", oauthProviderNames)
 
 			indexPageData := struct {
-				IsGuest, IsAdmin bool
-				Username string
+				IsGuest, IsAdmin      bool
+				Username              string
 				EnabledOauthProviders []string
+				NavInfo               navInfo
 			}{
-				IsGuest: isGuest,
 				IsAdmin: admin != nil,
-				Username: username,
-				EnabledOauthProviders: oauthProviderNames,
+				NavInfo: navInfo{
+					IsGuest:               isGuest,
+					Username:              username,
+					EnabledOauthProviders: oauthProviderNames,
+				},
 			}
 
 			// then render template with it
 			templateName := "templates/index.gohtml"
-			tmpl := template.Must(template.ParseFS(templatesFS, templateName))
+			tmpl := template.Must(template.ParseFS(templatesFS, "templates/base.gohtml", templateName))
 			var instantiatedTemplate bytes.Buffer
 			if err := tmpl.Execute(&instantiatedTemplate, indexPageData); err != nil {
 				return c.JSON(http.StatusInternalServerError, map[string]string{"message": "error parsing template"})
@@ -82,4 +93,56 @@ func getIndexPageRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error
 		})
 		return nil
 	}
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func stringWithCharset(length int, charset string) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
+func somePageRoute(e *core.ServeEvent) error {
+	e.Router.GET("/somepage", func(c echo.Context) error {
+		// get data
+		// and since i'm using 'base.gohtml' with Nav, i'll need Nav info
+
+		info := apis.RequestInfo(c)
+		admin := info.Admin       // nil if not authenticated as admin
+		record := info.AuthRecord // nil if not authenticated as regular auth record
+
+		username := ""
+		switch {
+		case admin != nil:
+			username = admin.Email
+		case record != nil:
+			username = record.Username()
+		}
+
+		somePageData := struct {
+			RandomNumber int
+			RandomString string
+			NavInfo      navInfo
+		}{
+			RandomNumber: rand.Int(),
+			RandomString: stringWithCharset(25, charset),
+			NavInfo: navInfo{
+				Username: username,
+			},
+		}
+
+		// then render template with it
+		templateName := "templates/somepage.gohtml"
+		tmpl := template.Must(template.ParseFS(templatesFS, "templates/base.gohtml", templateName))
+		var instantiatedTemplate bytes.Buffer
+		if err := tmpl.Execute(&instantiatedTemplate, somePageData); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message": "error parsing template"})
+		}
+
+		return c.HTML(http.StatusOK, instantiatedTemplate.String())
+	}, apis.RequireAdminOrRecordAuth())
+	return nil
 }
