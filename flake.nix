@@ -11,6 +11,7 @@
         pkgs.gopls
         pkgs.nodePackages.tailwindcss
         pkgs.nodePackages.prettier
+        pkgs.gnumake
       ];
 
       shellHook = ''

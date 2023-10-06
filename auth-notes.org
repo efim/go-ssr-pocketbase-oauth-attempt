@@ -61,18 +61,37 @@ and all js imports and libraries that are required by all pages, should be in al
 and now all since base template has Nav,
 i need to provide attibutes which are used there, huh
 well. hmmmmm. yeah, i guess
-** TODO add tailwind styling
+** DONE add tailwind styling
 and wgo command should move from
 wgo -file=.gohtml -file=.go go run . serve
 
 to
 wgo -verbose -file=.go -file=.gohtml -file=tailwind.config.js tailwindcss -i ./pages/input.css -o pages/static/public/out.css :: go run . serve
 *** DONE style pages
-*** TODO style dialog
+*** DONE style dialog
 
-** TODO package static into single binary
+** DONE i guess i'll want a makefile?
+then wgo could be build with makefile and run
+and nix packaging could be more straightforward, and not too prohibitive to those who don't use nix
+*** it seems that with MakeFile i could have go code depend on tailwind output
+and not have other way around,
+it should speed up the restart of the service in cases where only go code has changed.
+
+also - i think i can have different build and run for go code, so yeah
+*** allright, it looks like people also do that
+https://www.alexedwards.net/blog/a-time-saving-makefile-for-your-go-projects
+*** some helpful things:
+https://makefiletutorial.com/
+
+example of things for go
+https://earthly.dev/blog/golang-makefile/
+https://www.alexedwards.net/blog/a-time-saving-makefile-for-your-go-projects
+and i guess i could also search online for tailwindcss Makefile examples and tips
+
+** DONE package static into single binary
 i guess already done?
 ** TODO write nix build
+and it should be even easier with a Makefile?
 ** TODO write nixos module
 ** TODO add docker image from nix
 *** TODO add cli for port and host
@@ -80,6 +99,6 @@ i guess already done?
 ** TODO configure tls / ssl / https on franzk deployment
 can it be configured on render.com?
 ** TODO maybe add middleware so that 401 would be a page, and not json
-** TODO i guess i'll want a makefile?
-then wgo could be build with makefile and run
-and nix packaging could be more straightforward, and not too prohibitive to those who don't use nix
+** TODO get icons for the auth providers. surely they are accessible from the pocketbase itself?
+http://localhost:8090/_/images/oauth2/apple.svg
+yes.

@@ -6,3 +6,4 @@ tmp/
 .go
 .direnv
 pb_data
+pages/static/public/out.css

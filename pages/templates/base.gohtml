@@ -27,14 +27,22 @@
       <h2 class="text-lg font-bold flex-1">Using SSR and oauth with pocketbase as Go framework</h2>
       {{ if .NavInfo.IsGuest }}
       <button id="openAuth">Authenticate</button>
-      <dialog id="authDialog">
-        <button id="closeAuth">[X]</button>
-        <p>Greetings, one and all!</p>
-        {{ range .NavInfo.EnabledOauthProviders }}
-        <button onClick="callOauth('{{ . }}')">Login with {{ . }}</button>
-        {{ else }}
-        <p>Please configure at least one oauth provider</p>
-        {{ end }}
+      <dialog id="authDialog"
+              class="open:border open:border-4 open:flex open:flex-col open:p-6 open:gap-y-4 backdrop:bg-gradient-to-tl backdrop:to-cyan-700/25 backdrop:from-blue-900/50"
+              >
+        <div class="flex flex-row gap-x-7">
+          <p class="flex-1">Greetings, one and all!</p>
+          <button id="closeAuth">[X]</button>
+        </div>
+        <div class="flex flex-row gap-x-4">
+          {{ range .NavInfo.EnabledOauthProviders }}
+          <button
+            class="underline"
+            onClick="callOauth('{{ . }}')">Login with {{ . }}</button>
+          {{ else }}
+          <p>Please configure at least one oauth provider</p>
+          {{ end }}
+      </div>
       </dialog>
       <script defer type="text/javascript">
         async function callOauth(providerName) {
