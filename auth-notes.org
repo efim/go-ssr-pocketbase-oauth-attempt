@@ -148,7 +148,7 @@ and
 #+end_src
 is what i need for it to pick up pb_data from work directory, cool
 
-** TODO write nixos module
+** DONE write nixos module
 need to pass data and migration location as params
 and address on which to serve, cool
 i suppose
@@ -174,10 +174,21 @@ cool
 oh, but if i'm using nginx i'll need my own certificate, that makes sence
 *** maybe things are ok?
 let's try to plaintext deploy?
+*** quoting of the '' in multiline string
+https://nixos.org/manual/nix/stable/language/values.html
+*** not accessible still
+sudo journalctl -u nginx --since "1 day ago"
+*** oh, i forgot to add subname in gandi ui
+now works
+*** now i need a way to pass in the hostname
+because front-end is setting up js 'new PocketBase' with 127.0.0.1 connection
+*** adding a custom flag:
+https://github.com/pocketbase/pocketbase/discussions/1900
+
 
 
 ** TODO add docker image from nix
-*** TODO add cli for port and host
+*** CANCELLED add cli for port and host
 ** TODO add readme and comments
 ** TODO configure tls / ssl / https on franzk deployment
 can it be configured on render.com?
@@ -185,6 +196,7 @@ can it be configured on render.com?
 ** TODO get icons for the auth providers. surely they are accessible from the pocketbase itself?
 http://localhost:8090/_/images/oauth2/apple.svg
 yes.
+** TODO read and add ok logging
 ** TODO figure out and enbale migrations
 https://pocketbase.io/docs/go-migrations/#enable-go-migrations
 

@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"github.com/labstack/echo/v5"
 	"github.com/pocketbase/pocketbase"
@@ -23,10 +21,6 @@ func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
 
 	// fires for every auth collection
     app.OnRecordAuthRequest().Add(func(e *core.RecordAuthEvent) error {
-        log.Println(e.HttpContext)
-        log.Println(e.Record)
-        log.Println(e.Token)
-        log.Println(e.Meta)
 		e.HttpContext.SetCookie(&http.Cookie{
 			Name: AuthCookieName,
 			Value: e.Token,
@@ -39,9 +33,6 @@ func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
         return nil
     })
 	app.OnAdminAuthRequest().Add(func(e *core.AdminAuthEvent) error {
-        log.Println(e.HttpContext)
-        log.Println(e.Admin)
-        log.Println(e.Token)
 		e.HttpContext.SetCookie(&http.Cookie{
 			Name: AuthCookieName,
 			Value: e.Token,
@@ -74,14 +65,6 @@ func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
 				if err == nil && admin != nil {
 					// "authenticate" the admin
 					c.Set(apis.ContextAdminKey, admin)
-					someData := struct {
-						username string
-						email string
-					} {
-						admin.Email,
-						admin.Created.String(),
-					}
-					fmt.Printf("triggering the middlewar for cookie %v and err %v\n", someData, err)
 				}
 
 			case tokens.TypeAuthRecord:
@@ -92,15 +75,6 @@ func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
 				if err == nil && record != nil {
 					// "authenticate" the app user
 					c.Set(apis.ContextAuthRecordKey, record)
-					someData := struct {
-						username string
-						email string
-					} {
-						record.Username(),
-						record.Email(),
-					}
-					fmt.Printf("triggering the middlewar for cookie %v and err %v\n", someData, err)
-
 				}
 			}
 

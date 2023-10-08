@@ -3,7 +3,6 @@ package pages
 import (
 	"bytes"
 	"embed"
-	"fmt"
 	"html/template"
 	"math/rand"
 	"net/http"
@@ -47,8 +46,6 @@ func getIndexPageRoute(app *pocketbase.PocketBase) func(*core.ServeEvent) error 
 			record := info.AuthRecord // nil if not authenticated as regular auth record
 
 			isGuest := admin == nil && record == nil
-			coolMessage := fmt.Sprintf("got admin %v and record %v. is guest: %t", admin, record, isGuest)
-			fmt.Print(coolMessage)
 
 			username := ""
 			switch {
@@ -65,7 +62,6 @@ func getIndexPageRoute(app *pocketbase.PocketBase) func(*core.ServeEvent) error 
 					oauthProviderNames = append(oauthProviderNames, name)
 				}
 			}
-			fmt.Printf(">> enabled providers names %+v\n", oauthProviderNames)
 
 			indexPageData := struct {
 				IsGuest, IsAdmin      bool
