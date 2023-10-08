@@ -90,9 +90,66 @@ and i guess i could also search online for tailwindcss Makefile examples and tip
 
 ** DONE package static into single binary
 i guess already done?
-** TODO write nix build
+** DONE write nix build
 and it should be even easier with a Makefile?
+
+https://ryantm.github.io/nixpkgs/stdenv/stdenv/
+
+simple stdenv.mkDerivation calls generic builder which uses Makefile
+
+now i have a problem with using go build in a homeless-shelter
+       > failed to initialize build cache at /homeless-shelter/.cache/go-build: mkdir /homeless-shelter: permission denied
+*** well, especially with go.mod dependencies i'd need to use buildGoModule
+but
+[efim@chunky:~/Documents/personal/go-learning/auth-pocketbase-attempt]$ ./result/bin/auth-pocketbase-attempt serve
+2023/10/07 04:05:56 mkdir result/bin/pb_data: read-only file system
+
+so, i need to pass some place in tmp? this is probably pocketbase settings, hopefully as command line argument
+
+https://nixos.org/manual/nixpkgs/stable/#sec-language-go
+https://nixos.wiki/wiki/Go
+
+so, if i call executable from somewhere, it looks for pb_data in current directory
+
+but then for some reason
+[efim@chunky:~/Documents/personal/go-learning/auth-pocketbase-attempt]$ ./result/bin/auth-pocketbase-attempt serve
+2023/10/08 06:37:19 mkdir result/bin/pb_data: read-only file system
+
+here it tries to init pb_data near the binary
+
+this works:
+[efim@chunky:~/Documents/personal/go-learning/auth-pocketbase-attempt]$ ./result/bin/auth-pocketbase-attempt serve --dir=./pb_data
+
+*** oh, i don't need to specify location of migrations.
+because they are static. and should be just present in the nix store
+
+and --dir is already built in. nice
+
+well, i don't see any pb_migrations in my project directory even though,
+i'm creating and updating the table
+maybe it's all in pb_data now?
+
+if now - i'll need to add something like
+#+begin_src nix
+            postBuild = ''
+              cp pb_migration $out/bin/pb_migration
+            '';
+#+end_src
+
+*** so, if using as framework migrations are not automatically enabled?
+https://github.com/pocketbase/pocketbase/discussions/2218
+
+https://pocketbase.io/docs/go-migrations/#enable-go-migrations
+The prebuilt executable enables the migrate command by default, but when you are extending PocketBase with Go you have to enable it manually
+*** now `nix build` produces the binary capable to run the site
+and
+#+begin_src bash
+./result/bin/auth-pocketbase-attempt serve --dir=./pb_data
+#+end_src
+is what i need for it to pick up pb_data from work directory, cool
+
 ** TODO write nixos module
+need to pass data and migration location as params
 ** TODO add docker image from nix
 *** TODO add cli for port and host
 ** TODO add readme and comments
@@ -102,3 +159,9 @@ can it be configured on render.com?
 ** TODO get icons for the auth providers. surely they are accessible from the pocketbase itself?
 http://localhost:8090/_/images/oauth2/apple.svg
 yes.
+** TODO figure out and enbale migrations
+https://pocketbase.io/docs/go-migrations/#enable-go-migrations
+
+if i understood correctly, when i enable migration generation
+i would be able to modify locally run instance via admin interface,
+go files with migration would be generated, i'll have to import them somewhere in my main module, and then after building/packaging when i run `serve` on production the migrations would run on the production data
