@@ -184,6 +184,13 @@ now works
 because front-end is setting up js 'new PocketBase' with 127.0.0.1 connection
 *** adding a custom flag:
 https://github.com/pocketbase/pocketbase/discussions/1900
+** TODO change some additional config to option :
+      ${optionalString config.proxyWebsockets ''
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+      ''}
+( also in planning poker repo )
 
 
 

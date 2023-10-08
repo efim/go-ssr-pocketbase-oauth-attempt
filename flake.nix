@@ -70,6 +70,12 @@
                 description =
                   "Whether pocketbase should serve on https and issue own certs. Main case for true - when not under nginx";
               };
+              useHostTls = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description =
+                  "Whether virtual host should enable NixOS ACME certs";
+              };
             };
             config = let
               username = "${shortName}-user";
@@ -102,22 +108,24 @@
                 };
               };
               services.nginx = lib.mkIf cfg.useNginx {
-                virtualHosts.${cfg.host}.locations."/" = {
-                  proxyPass =
-                    "http://127.0.0.1:${toString cfg.port}";
-                  # taken from https://pocketbase.io/docs/going-to-production/
-                  extraConfig = ''
-                    # check http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
-                    proxy_set_header Connection ''';
-                    proxy_http_version 1.1;
-                    proxy_read_timeout 360s;
+                virtualHosts.${cfg.host} = {
+                  forceSSL = cfg.useHostTls;
+                  enableACME = cfg.useHostTls;
+                  locations."/" = {
+                    proxyPass = "http://127.0.0.1:${toString cfg.port}";
+                    # taken from https://pocketbase.io/docs/going-to-production/
+                    extraConfig = ''
+                      # check http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
+                      proxy_set_header Connection ''';
+                      proxy_http_version 1.1;
+                      proxy_read_timeout 360s;
 
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                  '';
-                  # TODO doesn't include tls sadly
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $scheme;
+                    '';
+                  };
                 };
               };
             };
