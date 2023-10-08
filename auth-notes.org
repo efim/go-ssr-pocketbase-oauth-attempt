@@ -175,6 +175,7 @@ oh, but if i'm using nginx i'll need my own certificate, that makes sence
 *** maybe things are ok?
 let's try to plaintext deploy?
 
+
 ** TODO add docker image from nix
 *** TODO add cli for port and host
 ** TODO add readme and comments

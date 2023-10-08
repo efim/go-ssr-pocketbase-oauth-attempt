@@ -42,8 +42,8 @@
         nixosModules.auth-pocketbase-attempt = { config, pkgs, ... }:
           let
             cfg = config.services.${pname};
-            lib = pkgs.lib;
-            shortName = "pb-auth-example-group";
+            lib = nixpkgs.lib;
+            shortName = "pb-auth-example-app";
           in {
             options.services.${pname} = {
               enable = lib.mkEnableOption
@@ -71,16 +71,20 @@
                   "Whether pocketbase should serve on https and issue own certs. Main case for true - when not under nginx";
               };
             };
-            config = lib.mkIf cfg.enable {
-              users.groups."${shortName}-group" = { };
-              users.users."${shortName}-user" = {
-                isSystemUser = true;
-                group = "${shortName}-group";
+            config = let
+              username = "${shortName}-user";
+              groupname = "${shortName}-group";
+            in lib.mkIf cfg.enable {
+              users.groups."${groupname}" = { };
+              users.users."${username}" = {
+                isNormalUser = true; # needed to allow for home dir
+                group = "${groupname}";
               };
               systemd.services.${shortName} = let
                 protocol = if cfg.usePbTls then "https" else "http";
                 serverHost = if cfg.useNginx then "127.0.0.1" else cfg.host;
-                servedAddress = "${protocol}://${serverHost}:${cfg.port}";
+                serveCliArg =
+                  "--${protocol} ${serverHost}:${toString cfg.port}";
               in {
                 description = "Exercise app ${pname}";
                 wantedBy = [ "multi-user.target" ];
@@ -89,12 +93,31 @@
                 startLimitBurst = 10;
                 serviceConfig = {
                   ExecStart =
-                    "${packages.auth-pocketbase-attempt}/bin/${pname} serve ${servedAddress} --dir=/home/${
-                      config.users.users."${shortName}-user"
+                    "${packages.auth-pocketbase-attempt}/bin/${pname} serve ${serveCliArg} --dir=/home/${
+                      "${username}"
                     }";
                   Restart = "on-failure";
-                  User = "${shortName}-user";
-                  Group = "${shortName}-group";
+                  User = "${username}";
+                  Group = "${groupname}";
+                };
+              };
+              services.nginx = lib.mkIf cfg.useNginx {
+                virtualHosts.${cfg.host}.locations."/" = {
+                  proxyPass =
+                    "http://127.0.0.1:${toString cfg.port}";
+                  # taken from https://pocketbase.io/docs/going-to-production/
+                  extraConfig = ''
+                    # check http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
+                    proxy_set_header Connection ''';
+                    proxy_http_version 1.1;
+                    proxy_read_timeout 360s;
+
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                  '';
+                  # TODO doesn't include tls sadly
                 };
               };
             };
