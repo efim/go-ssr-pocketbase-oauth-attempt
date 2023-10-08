@@ -46,7 +46,8 @@
       </dialog>
       <script defer type="text/javascript">
         async function callOauth(providerName) {
-          const pb = new PocketBase("http://127.0.0.1:8090");
+          const baseUrl = window.location.protocol + "//" + window.location.host;
+          const pb = new PocketBase(baseUrl);
 
           // This method initializes a one-off realtime subscription and will
           // open a popup window with the OAuth2 vendor page to authenticate.
