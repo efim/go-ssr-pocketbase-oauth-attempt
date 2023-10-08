@@ -150,6 +150,31 @@ is what i need for it to pick up pb_data from work directory, cool
 
 ** TODO write nixos module
 need to pass data and migration location as params
+and address on which to serve, cool
+i suppose
+but also nginx settins at the same time
+*** this is behavior of specifying the host and port:
+[efim@chunky:~/Documents/personal/go-learning/auth-pocketbase-attempt]$ sudo ./result/bin/auth-pocketbase-attempt serve --https=127.0.0.1:8090 --dir=./pb_data
+2023/10/08 12:58:04 Server started at https://127.0.0.1:8090
+├─ REST API: https://127.0.0.1:8090/api/
+└─ Admin UI: https://127.0.0.1:8090/_/
+^C
+[efim@chunky:~/Documents/personal/go-learning/auth-pocketbase-attempt]$ sudo ./result/bin/auth-pocketbase-attempt serve 127.0.0.1:8090 --dir=./pb_data
+2023/10/08 12:58:15 Server started at https://127.0.0.1:8090
+├─ REST API: https://127.0.0.1:8090/api/
+└─ Admin UI: https://127.0.0.1:8090/_/
+^C
+[efim@chunky:~/Documents/personal/go-learning/auth-pocketbase-attempt]$ sudo ./result/bin/auth-pocketbase-attempt serve --http=127.0.0.1:8090 --dir=./pb_data
+2023/10/08 12:58:20 Server started at http://127.0.0.1:8090
+├─ REST API: http://127.0.0.1:8090/api/
+└─ Admin UI: http://127.0.0.1:8090/_/
+*** by default - if host is present, serving on https.
+cool
+
+oh, but if i'm using nginx i'll need my own certificate, that makes sence
+*** maybe things are ok?
+let's try to plaintext deploy?
+
 ** TODO add docker image from nix
 *** TODO add cli for port and host
 ** TODO add readme and comments
