@@ -13,7 +13,28 @@ import (
 )
 
 const AuthCookieName = "Auth"
+// front end side of authentication:
+// in base.gohtml template, in <nav> bar
+// js code uses SDK for pocketbase to handle oauth calls to backend.
+// Also custom event
+// in oauth js code
+//           document.body.dispatchEvent(new Event("auth-change-event"));
+// and in logout route
+// 			c.Response().Header().Add("HX-Trigger", "auth-change-event")
+// trigger hx-get on <body>
+// so that on successful auth and logout the page would refresh
+// This is suboptimal in that 3 places:
+// <body> with hx-get, js code with `dispatchEvent` and logout route with
+// HX-Trigger share responsibility for this piece of logic.  For some reason
+// returning HX-Trigger from auth routes via middleware doesn't trigger event on
+// htmx side, maybe because these reqeusts are done through js and not directly
+// by user in browser.  Or maybe this would be considered a bug on htmx side and
+// system could be simplified to just use HX-Trigger response header.  Or some
+// other way to simplify
 
+
+// registeres on pocketbase middleware that
+// Sets and Reads session data into a secure cookie
 func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.Use(loadAuthContextFromCookie(app))
@@ -35,6 +56,7 @@ func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
 		})
         return nil
     })
+	// fires for admin authentication
 	app.OnAdminAuthRequest().Add(func(e *core.AdminAuthEvent) error {
 		e.HttpContext.SetCookie(&http.Cookie{
 			Name: AuthCookieName,

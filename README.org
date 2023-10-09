@@ -1,0 +1,266 @@
+#+title: Readme
+* Go Server Side Rendering attempt with Pocketbase
+** Description
+Code in this repo is an attempt to implement a Server Side Rendered (go, templates, htmx) website that would allow signup / authentication via social oauth2 providers.
+
+Using [[https://pocketbase.io/][pocketbase]] importing it as a framework, to have out-of-the box administration portal with user management, data api, logs.
+With everything being compiled into a single binary which is [[https://pocketbase.io/docs/going-to-production/][very easy to deploy]] thanks to pocketbase architecture.
+
+Most common usage of pocketbase - to develop only front end and utilize api's, either json web api, or JS SDK \ Dark SDK.
+But ability to extend the pocketbase by importing it into go project allows to use it also as a pre-built backend for a server that serves SSR html pages.
+[[https://htmx.org/essays/][And it can feel really nice, especially if we can also make website feel responsive]].
+
+* Building and deploying
+** Without nix
+1. Have required dependencies on PATH:
+   - gnumake
+   - go
+   - tailwindcss
+2. use Makefile:
+   #+begin_src bash
+   make build
+   #+end_src
+
+   It will build tailwindcss style, and then build a binary with all necessary files bundled.
+3. Use deployment guide for pocketbase
+   https://pocketbase.io/docs/going-to-production/
+   - either copy the binary to the production server
+   - or write up a Dockerfile
+4. To run locally:
+   #+begin_src bash
+   auth-pocketbase-attempt serve
+   #+end_src
+   will start service on 127.0.0.1:8090
+   can start on any port with argument `--http=127.0.0.1:9999`
+** With [[https://nixos.org/][nix]]
+*** nix build
+Will build default application, the server.
+Also packages all static resources directly into binary.
+To run:
+#+begin_src bash
+./result/bin/auth-pocketbase-attempt serve --dir=./pb_data
+#+end_src
+
+Specifying pb_data from the root of the dev project, otherwise will try to create database and other things inside of the /nix/store
+*** deploy on [[https://www.tweag.io/blog/2020-05-25-flakes/][NixOS with flakes]]:
+Flake contains a NixOS module, for deployment on server with NixOS
+Module includes
+- systemd job for starting server on machine reboot, automatically restarting on errors, logging.
+- option to choose reverse proxy with nginx, or running pocketbase directly bound to port 443 and serving the domain name
+  Which should make pocketbase handle it's own certificates (see step 3 [[https://pocketbase.io/docs/going-to-production][here]])
+
+
+Deployment process:
+1. taking flake as input
+   #+begin_src nix
+    inputs.go-ssr-oauth-attempt.url = "git+http://git.sunshine.industries/efim/go-ssr-pocketbase-oauth-attempt.git";
+   #+end_src
+2. importing in the server config:
+   #+begin_src nix
+   imports = [
+      inputs.go-ssr-oauth-attempt.nixosModules.x86_64-linux.auth-pocketbase-attempt
+   ]
+   #+end_src
+3. setting options
+   #+begin_src nix
+  services.auth-pocketbase-attempt = {
+    enable = true;
+    host = "go-ssr-oauth-attempt.sunshine.industries";
+    port = 45001;
+    useHostTls = true;
+  };
+   #+end_src
+4. enabling TLS with lets encrypt for the server and opening https port:
+   #+begin_src nix
+  security.acme.acceptTerms = true;
+  security.acme.defaults.email = "your@email.net";
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
+   #+end_src
+    see https://nixos.org/manual/nixos/stable/#module-security-acme-nginx
+    ( and also same here https://nixos.wiki/wiki/Nginx )
+5. Apply config to your server.
+   (i use [[https://github.com/serokell/deploy-rs][deploy-rs]], but simple nixos-rebuild switch via ssh is good)
+* Running during development
+** With nix
+Flake contains dev shell with all required dependencies,
+If you have
+#+begin_src nix
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+#+end_src
+on your machine, you can just `direnv allow` to have build dependencies automatically put on PATH when you enter the project directory.
+
+Otherwise `nix develop` will put you into shell with all dependencies.
+
+Then running:
+#+begin_src bash
+make run/live
+#+end_src
+will build and start the server,
+and will trigger rebuild and restart when files change,
+only rebuilding tailwindcss when templates or css input changes
+** Without nix
+You'll need to have all required dependencies:
+- gnumake
+  to run Makefile that composes several build steps into single commands
+- go
+  compiler
+- wgo
+  for server recompilation and restart
+- gopls
+  lsp server
+- semgrep
+  some other lsp server which emacs asked me to install for go
+- tailwindcss
+  to build output.css
+- prettier
+  to format the .gohtml files
+
+Then running:
+#+begin_src bash
+make run/live
+#+end_src
+will build and start the server,
+and will trigger rebuild and restart when files change,
+only rebuilding tailwindcss when templates or css input changes
+* Main parts:
+** Authentication middleware:
+Registering hooks:
+1) after successful auth to set the token into secure cookie:
+   #+begin_src go
+	// fires for every auth collection
+    app.OnRecordAuthRequest().Add(func(e *core.RecordAuthEvent) error {
+		e.HttpContext.SetCookie(&http.Cookie{
+			Name: AuthCookieName,
+			Value: e.Token,
+			Path: "/",
+			Secure: true,
+			HttpOnly: true,
+		})
+        return nil
+    })
+   #+end_src
+2) on call to any pocketbase endpoint to populate request context with parsed auth info:
+   #+begin_src go
+app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+    e.Router.Use(loadAuthContextFromCookie(app))
+    return nil
+})
+
+func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			tokenCookie, err := c.Request().Cookie(AuthCookieName)
+			if err != nil || tokenCookie.Value == "" {
+				return next(c) // no token cookie
+			}
+
+			token := tokenCookie.Value
+
+			claims, _ := security.ParseUnverifiedJWT(token)
+			tokenType := cast.ToString(claims["type"])
+
+			switch tokenType {
+			case tokens.TypeAdmin:
+				admin, err := app.Dao().FindAdminByToken(
+					token,
+					app.Settings().AdminAuthToken.Secret,
+				)
+				if err == nil && admin != nil {
+					// "authenticate" the admin
+					c.Set(apis.ContextAdminKey, admin)
+				}
+
+			case tokens.TypeAuthRecord:
+				record, err := app.Dao().FindAuthRecordByToken(
+					token,
+					app.Settings().RecordAuthToken.Secret,
+				)
+				if err == nil && record != nil {
+					// "authenticate" the app user
+					c.Set(apis.ContextAuthRecordKey, record)
+				}
+			}
+
+			return next(c)
+		}
+	}
+}
+   #+end_src
+
+   as taken from discussion: https://github.com/pocketbase/pocketbase/discussions/989#discussioncomment-4109411
+
+Now when pages are served from routes registered in pocketbase - they will be able to access the auth info from context.
+And also any other json api request will be automatically authenticated with correct user.
+** Front end side of authentication
+Since on go side we hook into 'post successful auth' we can use "All in one (recommended)" [[https://pocketbase.io/docs/authentication/][way for oauth2 in the guide]].
+
+In the js script we initialize pocketbase SDK,
+and for each existing oauth provider rendering a button that calls a method:
+#+begin_src js
+const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
+#+end_src
+*** Authentication with passwords can also be coded
+With form making POST directly to existing json api (closer to HATEOAS)
+or js calls through SDK.
+And any successful auth should also call our middleware and set the cookie.
+
+** Pages package
+With templates and static files (out.css and htmx.min.js) bundled into resulting binary with `embed.FS`
+
+Having
+#+begin_src go
+	app.OnBeforeServe().Add(getIndexPageRoute(app))
+#+end_src
+adds route that renders html and returns on some path of our site.
+Passing in `app` gives access to things like `app.DAO` for data querying.
+
+** Changing error responses to html
+Registering `OnBeforeApiError` to change json response into html.
+This way errors are displayed to end users in a more friendly manner, good idea because usual usage of pocketbase is to have front-end application that would translate error jsons into human readable view.
+* Useful parts of documentation:
+** Things available in backend through `app`
+- [[https://pocketbase.io/docs/go-routing/][Routing]]
+  registering new routes, reading path / query parameters
+- [[https://pocketbase.io/docs/go-event-hooks/][Database]]
+  querying data
+- [[https://pocketbase.io/docs/go-migrations/][Migrations]]
+  Current project doesn't include migrations,
+  I didn't understand it all, but it seems that for the project that uses pocketbase as a framework migrations are generated in form of .go files.
+  If you change tables in admin portal, the changes to them will be encoded as migration path.
+  Which need to be imported somewhere in 'main' package, included into binary during compilation and automatically applied to production database after updated binary first runs.
+** [[https://pocketbase.io/docs/authentication/][Overview of authentication from the front end side]]
+** Tips on [[Things required for produ][going to production]]
+* Things which are not good right now
+** I'd like to figure out a better way to load js scripts
+Having them in 'base.gohtml' is ok, but it seems to much, maybe another template or something.
+Same with <nav> which has 2 scripts and seem big and unpleasant.
+Maybe hypersript would achieve same with couple lines of code, maybe there's some other fine art of adding js into htmx projects on go.
+** Building with both Makefile and nix derivation
+Having a Makefile is awesome for run/live
+which only triggers tailwind step if tailwind inputs have changed.
+
+My previous attempt was to run 'wgo' directly:
+#+begin_src bash
+wgo -verbose -file=.go -file=.gohtml -file=tailwind.config.js tailwindcss -i ./pages/input.css -o pages/static/public/out.css :: go run . serve
+#+end_src
+
+But this triggered tailwind on change of .go files with business logic, which took up time before service is available.
+
+Unfortunately building go with dependencies is easy in nix (with 'buildGoModule'), but not trivial, because dependencies has to be pre-downloaded and set up as 'fixed output derivation'.
+
+So I don't know of a way to just reuse Makefile for nix derivation.
+Thus build is described in two places independently.
+
+And if any new build step is added, so that Makefile has to change - then i have to not to forget that nix derivation should also be changed.
+** Error pages
+Currently 'before error' makes error return a page that redirects to error page
+and error pages are in 'pages' module
+
+But putting middleware into module 'pages/errors' and make it directly render error pages will be better.
+** Currently have all pages in one file
+and don't have separate rotues to return only <main> part of template for HX reqeusts that do 'hx-boost' switches.
+** Would be nice to somehow set up JS SDK dependency locally and serve it from static files
+This would reduce dependency on cdn

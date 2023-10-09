@@ -13,13 +13,24 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 )
+// template files are bundled with binary
+// for worry free deployment that needs to copy a single file
 
 //go:embed templates
 var templatesFS embed.FS
 
+// static files are bundled into separate FS
+// because full content of that embed.FS is available
+// under http://127.0.0.1:8090/static/static/public/
+
 //go:embed static
 var staticFilesFS embed.FS
 
+// registers site pages, to be served by pocketbase
+// passes `app` to allow access to `DAO` and other apis
+// each page will get auth data in request context
+// and will be able to create all necessary info for page render:
+// user data, external api calls, calculations
 func AddPageRoutes(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(getIndexPageRoute(app))
 	app.OnBeforeServe().Add(getSomePageRoute(app))
@@ -155,6 +166,10 @@ func getErrorPageRoute(app *pocketbase.PocketBase) func(*core.ServeEvent) error 
 	}
 }
 
+// initializing data which is used by any page that has <nav> bar
+// - whether user is already authenticated
+// - which authentication methods are available
+// this is used in templates/base.gohtml
 func initNavInfoData(app *pocketbase.PocketBase, c echo.Context) navInfo {
 	// first collect data
 	info := apis.RequestInfo(c)

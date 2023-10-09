@@ -197,7 +197,24 @@ https://github.com/NixOS/nixpkgs/blob/nixos-23.05/nixos/modules/services/web-ser
 
 ** TODO add docker image from nix
 *** CANCELLED add cli for port and host
-** TODO add readme and comments
+** DONE add readme and comments
+*** DONE pupose of the code
+*** DONE how to build, install
+with and without nix
+*** DONE development things 'make run/live'
+*** DONE main parts:
+**** DONE auth middleware
+**** DONE using js auth
+**** DONE pages
+**** DONE error pages
+*** DONE links to main documentation:
+- [X] adding new auth providers
+- [X] adding middlewares and working with collections
+*** DONE things which aren't good here:
+- [X] error pages, i guess module in pages, but exposing before error hook themselves
+- [X] rendering full pages, not doing 'just main' for hx requests
+- [X] maybe serving js pocketbase from own static files?
+*** DONE comments on all main modules
 ** DONE configure tls / ssl / https on franzk deployment
 https://nixos.org/manual/nixos/stable/#module-security-acme-nginx
 ( and also same here https://nixos.wiki/wiki/Nginx )

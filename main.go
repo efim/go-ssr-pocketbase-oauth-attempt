@@ -14,6 +14,8 @@ func main() {
 	middleware.AddErrorsMiddleware(app)
 	pages.AddPageRoutes(app)
 
+	// starts the pocketbase backend
+	// parses cli arguments for hostname and data dir
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
 	}
