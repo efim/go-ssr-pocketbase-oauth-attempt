@@ -101,7 +101,7 @@ func getLogoutRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error {
 				HttpOnly: true,
 			})
 			c.Response().Header().Add("HX-Trigger", "auth-change-event")
-			return c.JSON(http.StatusOK, map[string]string{"message": "session cookie removed"})
+			return c.NoContent(http.StatusOK)
 		})
 		return nil
 	}

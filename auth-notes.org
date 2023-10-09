@@ -242,7 +242,11 @@ https://stackoverflow.com/questions/62307431/firefox-sends-secure-cookies-to-loc
 see: except on localhost : https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 
 
-** TODO maybe add middleware so that 401 would be a page, and not json
+** TODO prettying up server responses for "we show html" land
+let's do this also, yes
+*** DONE logout should push root url in htmx
+*** TODO lets make 404 page and return it
+*** TODO lets make 401 page and return it
 ** TODO get icons for the auth providers. surely they are accessible from the pocketbase itself?
 http://localhost:8090/_/images/oauth2/apple.svg
 yes.
@@ -253,3 +257,6 @@ https://pocketbase.io/docs/go-migrations/#enable-go-migrations
 if i understood correctly, when i enable migration generation
 i would be able to modify locally run instance via admin interface,
 go files with migration would be generated, i'll have to import them somewhere in my main module, and then after building/packaging when i run `serve` on production the migrations would run on the production data
+** adding google oauth
+support article : https://developers.google.com/identity/sign-in/web/sign-in
+settings are in : https://console.cloud.google.com/apis/credentials
