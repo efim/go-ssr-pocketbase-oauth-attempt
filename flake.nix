@@ -114,10 +114,9 @@
                   locations."/" = {
                     proxyPass = "http://127.0.0.1:${toString cfg.port}";
                     # taken from https://pocketbase.io/docs/going-to-production/
+                    proxyWebsockets = true;
                     extraConfig = ''
                       # check http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
-                      proxy_set_header Connection ''';
-                      proxy_http_version 1.1;
                       proxy_read_timeout 360s;
 
                       proxy_set_header Host $host;
