@@ -11,6 +11,7 @@ func main() {
 	app := pocketbase.New()
 
 	middleware.AddCookieSessionMiddleware(app)
+	middleware.AddErrorsMiddleware(app)
 	pages.AddPageRoutes(app)
 
 	if err := app.Start(); err != nil {

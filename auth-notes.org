@@ -242,11 +242,12 @@ https://stackoverflow.com/questions/62307431/firefox-sends-secure-cookies-to-loc
 see: except on localhost : https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 
 
-** TODO prettying up server responses for "we show html" land
+** DONE prettying up server responses for "we show html" land
 let's do this also, yes
 *** DONE logout should push root url in htmx
-*** TODO lets make 404 page and return it
-*** TODO lets make 401 page and return it
+*** DONE lets make 404 page and return it
+*** DONE lets make 401 page and return it
+*** DONE and let's make NavInfo init common for reuse
 ** TODO get icons for the auth providers. surely they are accessible from the pocketbase itself?
 http://localhost:8090/_/images/oauth2/apple.svg
 yes.

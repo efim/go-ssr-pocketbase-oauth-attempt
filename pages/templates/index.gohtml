@@ -13,6 +13,7 @@
     </li>
   </ul>
   {{ else }}
+  <p>Rendering this on the backend, passing values from the code: {{ .BackendMessage }}</p>
   <p>There will be some content only for authorized users</p>
   {{ end }}
 </main>
