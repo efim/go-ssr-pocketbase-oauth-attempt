@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v5"
@@ -15,9 +14,7 @@ import (
 
 const AuthCookieName = "Auth"
 
-func AddCookieSessionMiddleware(app *pocketbase.PocketBase, isTlsEnabled bool) {
-	log.Println("Warning: starting server with cookie Secure = false!")
-
+func AddCookieSessionMiddleware(app *pocketbase.PocketBase) {
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.Use(loadAuthContextFromCookie(app))
 		return nil
@@ -29,7 +26,7 @@ func AddCookieSessionMiddleware(app *pocketbase.PocketBase, isTlsEnabled bool) {
 			Name: AuthCookieName,
 			Value: e.Token,
 			Path: "/",
-			Secure: isTlsEnabled,
+			Secure: true,
 			HttpOnly: true,
 		})
 		e.HttpContext.SetCookie(&http.Cookie{
@@ -43,12 +40,12 @@ func AddCookieSessionMiddleware(app *pocketbase.PocketBase, isTlsEnabled bool) {
 			Name: AuthCookieName,
 			Value: e.Token,
 			Path: "/",
-			Secure: isTlsEnabled,
+			Secure: true,
 			HttpOnly: true,
 		})
         return nil
     })
-	app.OnBeforeServe().Add(getLogoutRoute(app, isTlsEnabled))
+	app.OnBeforeServe().Add(getLogoutRoute(app))
 }
 
 func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
@@ -92,7 +89,7 @@ func loadAuthContextFromCookie(app core.App) echo.MiddlewareFunc {
 }
 
 // render and return login page with configured oauth providers
-func getLogoutRoute(app *pocketbase.PocketBase, isTlsEnabled bool)  func(*core.ServeEvent) error {
+func getLogoutRoute(app *pocketbase.PocketBase)  func(*core.ServeEvent) error {
 	return func (e *core.ServeEvent) error {
 		e.Router.GET("/logout", func(c echo.Context) error {
 			c.SetCookie(&http.Cookie{
@@ -100,7 +97,7 @@ func getLogoutRoute(app *pocketbase.PocketBase, isTlsEnabled bool)  func(*core.S
 				Value: "",
 				Path: "/",
 				MaxAge: -1,
-				Secure: isTlsEnabled,
+				Secure: true,
 				HttpOnly: true,
 			})
 			c.Response().Header().Add("HX-Trigger", "auth-change-event")

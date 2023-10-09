@@ -214,6 +214,33 @@ this is all that's needed to enable tls
 mind blown
 ** DONE somehow set cookie to httpOnly & secure
 with ability to disable for development session
+*** a complication
+since i'm under the nginx, i can't just match on the serving address :
+#+begin_src
+[efim@franzk:~]$ systemctl status pb-auth-example-app.service
+● pb-auth-example-app.service - Exercise app auth-pocketbase-attempt
+     Loaded: loaded (/etc/systemd/system/pb-auth-example-app.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2023-10-09 04:29:20 UTC; 1min 17s ago
+   Main PID: 411857 (auth-pocketbase)
+      Tasks: 13 (limit: 629145)
+     Memory: 28.3M
+        CPU: 148ms
+     CGroup: /system.slice/pb-auth-example-app.service
+             └─411857 /nix/store/czq95bjhwszasncp8f04d9yn4m0xf4kw-auth-pocketbase-attempt-0.0.1/bin/auth-pocketbase-attempt serve --http 127.0.0.1:45001 --dir=/home/pb-auth-example-app-user
+
+Oct 09 04:29:20 franzk systemd[1]: Started Exercise app auth-pocketbase-attempt.
+Oct 09 04:29:20 franzk auth-pocketbase-attempt[411857]: 2023/10/09 04:29:20 Warning: starting server with cookie Secure = false!
+Oct 09 04:29:20 franzk auth-pocketbase-attempt[411857]: 2023/10/09 04:29:20 Server started at http://127.0.0.1:45001
+Oct 09 04:29:20 franzk auth-pocketbase-attempt[411857]: ├─ REST API: http://127.0.0.1:45001/api/
+Oct 09 04:29:20 franzk auth-pocketbase-attempt[411857]: └─ Admin UI: http://127.0.0.1:45001/_/
+#+end_src
+*** so, custom arg is required, hello
+https://github.com/pocketbase/pocketbase/discussions/1900
+*** holy cow, Firefox and later Chrome will accept Secure cookie on localhost
+https://stackoverflow.com/questions/62307431/firefox-sends-secure-cookies-to-localhost
+
+see: except on localhost : https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+
 
 ** TODO maybe add middleware so that 401 would be a page, and not json
 ** TODO get icons for the auth providers. surely they are accessible from the pocketbase itself?
