@@ -212,7 +212,7 @@ https://github.com/efim/dotfiles/commit/b3695148082d8c9850a781aaa7a88920bdb1fa7f
 
 this is all that's needed to enable tls
 mind blown
-** TODO somehow set cookie to httpOnly & secure
+** DONE somehow set cookie to httpOnly & secure
 with ability to disable for development session
 
 ** TODO maybe add middleware so that 401 would be a page, and not json

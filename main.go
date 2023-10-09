@@ -1,16 +1,21 @@
 package main
 
 import (
-    "log"
+	"log"
+	"strings"
 
-    "github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase"
 	"sunshine.industries/auth-pocketbase-attempt/middleware"
 	"sunshine.industries/auth-pocketbase-attempt/pages"
 )
 
 func main() {
 	app := pocketbase.New()
-	middleware.AddCookieSessionMiddleware(app)
+
+	servedName := app.Settings().Meta.AppUrl
+	isTlsEnabled := strings.HasPrefix(servedName, "https://")
+
+	middleware.AddCookieSessionMiddleware(app, isTlsEnabled)
 	pages.AddPageRoutes(app)
 
     if err := app.Start(); err != nil {
